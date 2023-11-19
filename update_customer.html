@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Update Customer</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    input {
+      margin-bottom: 10px;
+      width: 200px;
+      padding: 5px;
+    }
+
+    .edit-icon {
+      background-color: skyblue;
+      cursor: pointer;
+      border-width: 2px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Update Customer Information</h1>
+  <form id="customerForm">
+    <label for="firstName">First Name:</label>
+    <input type="text" id="firstName" name="firstName" required><br>
+
+    <label for="lastName">Last Name:</label>
+    <input type="text" id="lastName" name="lastName" required><br>
+
+    <label for="street">Street:</label>
+    <input type="text" id="street" name="street" required><br>
+
+    <label for="address">Address:</label>
+    <input type="text" id="address" name="address" required><br>
+
+    <label for="city">City:</label>
+    <input type="text" id="city" name="city" required><br>
+
+    <label for="state">State:</label>
+    <input type="text" id="state" name="state" required><br>
+
+    <label for="email">Email:</label>
+    <input type="email" id="email" name="email" required><br>
+
+    <label for="phone">Phone:</label>
+    <input type="tel" id="phone" name="phone" required><br>
+
+    <span class="edit-icon" onclick="updateCustomer()">✏️ Update Customer</span>
+  </form>
+
+  <script>
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const uuid = urlParams.get('uuid');
+    if (uuid) {
+      updateCustomer(uuid);
+    } else {
+      console.error('UUID not found in the URL');
+    }
+    async function updateCustomer(uuid) {
+      const apiUrl = 'http://localhost:3000/updateCustomer';
+      const data = {
+        cmd: 'update',
+        uuid: uuid,
+        first_name: document.getElementById('firstName').value,
+        last_name: document.getElementById('lastName').value,
+        street: document.getElementById('street').value,
+        address: document.getElementById('address').value,
+        city: document.getElementById('city').value,
+        state: document.getElementById('state').value,
+        email: document.getElementById('email').value,
+        phone: document.getElementById('phone').value
+      };
+
+      try {
+        const response = await fetch(apiUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        if (response.ok) {
+          alert("Customer successfully Updated");
+          console.log('Customer updated successfully:', result.message);
+        } else {
+          alert("Customer successfully Updated");
+          console.error('Error updating customer:', result.error);
+        }
+      } catch (error) {
+        console.error('Failed to update customer:', error);
+      }
+    }
+  </script>
+</body>
+
+</html>

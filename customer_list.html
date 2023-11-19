@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Customer List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    #addNewButton {
+      background-color: skyblue;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      margin-bottom: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th,
+    td {
+      border: 1px solid #ddd;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    .edit-icon,
+    .delete-icon {
+      cursor: pointer;
+    }
+
+    .edit-icon,
+    .delete-icon {
+      cursor: pointer;
+      margin-right: 5px;
+    }
+  </style>
+</head>
+
+<body>
+  <button id="addNewButton" onclick="redirectToNewPage()">Add New Customer</button>
+  <table id="customerTable">
+    <thead>
+      <tr id="tableHeaderRow">
+      </tr>
+    </thead>
+    <tbody id="customerTableBody">
+    </tbody>
+  </table>
+
+  <script>
+    function redirectToNewPage() {
+      window.location.href = 'new_customer.html';
+    }
+    async function getCustomerList() {
+      try {
+        const response = await fetch('http://localhost:3000/customerList', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch customer list');
+        }
+
+        const customerData = await response.json();
+        displayCustomers(customerData);
+      } catch (error) {
+        console.error('Error:', error.message);
+      }
+    }
+
+    function displayCustomers(customers) {
+      const table = document.getElementById('customerTable');
+      const thead = table.createTHead();
+      const headerRow = thead.insertRow();
+      for (const key in customers[0]) {
+        const th = document.createElement('th');
+        th.textContent = key;
+        headerRow.appendChild(th);
+      }
+      const actionsHeader = document.createElement('th');
+      actionsHeader.textContent = 'Actions';
+      headerRow.appendChild(actionsHeader);
+
+
+      const tbody = table.createTBody();
+      customers.forEach(customer => {
+        const row = tbody.insertRow();
+        for (const key in customer) {
+          const cell = row.insertCell();
+          cell.textContent = customer[key];
+        }
+        const actionCell = row.insertCell();
+        const deleteIcon = document.createElement('span');
+        deleteIcon.className = 'delete-icon';
+        deleteIcon.textContent = '❌';
+        deleteIcon.onclick = function () {
+          deleteCustomer(customer.uuid);
+        };
+        actionCell.appendChild(deleteIcon);
+        console.log(customer.uuid);
+
+        const editIcon = document.createElement('span');
+        editIcon.className = 'edit-icon';
+        editIcon.textContent = '✏️';
+        editIcon.onclick = function () {
+          const uuid = customer.uuid;
+          window.location.href = `update_customer.html?uuid=${uuid}`;
+        };
+        actionCell.appendChild(editIcon);
+      });
+    }
+
+    async function deleteCustomer(uuid) {
+      try {
+        const response = await fetch('http://localhost:3000/deleteCustomer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ cmd: 'delete', uuid: uuid })
+        });
+
+        if (!response.ok) {
+          if (response.status === 400) {
+            throw new Error('UUID not found.');
+          } else {
+            throw new Error('Error: Customer not deleted.');
+          }
+        }
+        alert("Customer successfully Deleted");
+
+        console.log('Customer successfully deleted.');
+      } catch (error) {
+        console.error('Error:', error.message);
+      }
+    }
+
+    async function updateCustomer(uuid, updatedCustomerData) {
+      try {
+        const response = await fetch('http://localhost:3000/updateCustomer', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ cmd: 'update', uuid: uuid, ...updatedCustomerData })
+        });
+
+        if (!response.ok) {
+          if (response.status === 400) {
+            throw new Error('Body is Empty.');
+          } else {
+            throw new Error('Error: UUID not found.');
+          }
+        }
+
+        console.log('Customer successfully updated.');
+      } catch (error) {
+        console.error('Error:', error.message);
+      }
+    }
+    window.onload = function () {
+      getCustomerList();
+    };
+  </script>
+</body>
+
+</html>
